@@ -1,3 +1,6 @@
+let WIDTH = 6;
+let HEIGHT = 5;
+
 // categories is the main data structure for the app; it looks like this:
 
 //  [
@@ -54,8 +57,6 @@ function getCategory(catId) {
  *   each with a question for each category in a <td>
  *   (initally, just show a "?" where the question/answer would go.)
  */
-let WIDTH = 6;
-let HEIGHT = 5;
 
 const fillTable = async () => {
   const board = document.querySelector('.board');
@@ -82,7 +83,7 @@ const fillTable = async () => {
     for (let x = 0; x < WIDTH; x++) {
       const tbodyCell = document.createElement('td');
       tbodyCell.setAttribute('id', `${y}-${x}`)
-      tbodyCell.innerHTML = `${y}-${x}`;
+      tbodyCell.innerHTML = `?`;
       tbodyRow.append(tbodyCell);
     }
     tbody.append(tbodyRow);

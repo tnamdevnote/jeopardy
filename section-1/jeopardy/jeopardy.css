@@ -1,7 +1,42 @@
-/* some colors you may find useful:
-  #115ff4
-  #060ce9
-  #28a200
-  #8d2ab5
-  #74119c
-*/
+:root {
+	--primary-color: #4bacb8;
+	--secondary-color: #e5ffff;
+	--answer-color: #cddc39;
+	--button-color: #ef9a9a;
+}
+body {
+	margin: 0;
+	background-color: var(--secondary-color);
+}
+
+.header {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.header__title {
+	font-size: 50px;
+	color: var(--primary-color);
+}
+
+.button {
+	background-color: var(--button-color);
+	width: 120px;
+	height: 50px;
+	border: none;
+}
+
+.board {
+	width: 80vw;
+	height: 80vh;
+	margin: 0 auto;
+	margin-bottom: 20px;
+}
+
+td {
+	background-color: var(--primary-color);
+	color: white;
+	text-align: center;
+}
