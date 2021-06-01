@@ -29,9 +29,10 @@ let categories = [];
  * Returns array of category ids
  */
 
-function getCategoryIds() {
-  const categories = axios.get('http://jservice.io/api/random', { params: { count: 5 } })
-  console.log(categories.data.map(x => x.category.title))
+const getCategoryIds = async () => {
+  const results = await axios.get('https://jservice.io/api/random', { params: { count: 6 } });
+  const categoryIds = results.data.map(x => x.category_id);
+  return categoryIds;
 }
 
 /** Return object with data about a category:
@@ -46,8 +47,14 @@ function getCategoryIds() {
  *   ]
  */
 
-function getCategory(catId) {
-  
+const getCategory = async (categoryIds) => {
+  // console.log(categoryIds)
+  const results = await axios.get('https://jservice.io/api/category', { params: { id: categoryIds } });
+  const categoryObj = {
+    title: results.data.title,
+    clues: results.data.clues.map(clue => ({ question: clue.question, answer: clue.answer, showing: null }))
+  };
+  return categoryObj;
 }
 
 /** Fill the HTML table#jeopardy with the categories & cells for questions.
@@ -59,36 +66,36 @@ function getCategory(catId) {
  */
 
 const fillTable = async () => {
-  const board = document.querySelector('.board');
+  // const board = document.querySelector('.board');
 
-  const thead = document.createElement('thead');
-  const theadRow = document.createElement('tr');
-  thead.setAttribute('class', 'board__thead');
-  theadRow.setAttribute('class', 'board__thead__row');
-  thead.append(theadRow);
+  // const thead = document.createElement('thead');
+  // const theadRow = document.createElement('tr');
+  // thead.setAttribute('class', 'board__thead');
+  // theadRow.setAttribute('class', 'board__thead__row');
+  // thead.append(theadRow);
   
   
-  for (let x = 0; x < WIDTH; x++) {
-    const theadCell = document.createElement('td');
-    theadCell.setAttribute('id', x);
-    theadCell.innerHTML = x;
-    theadRow.append(theadCell);
-  }
+  // for (let x = 0; x < WIDTH; x++) {
+  //   const theadCell = document.createElement('td');
+  //   theadCell.setAttribute('id', x);
+  //   theadCell.innerHTML = x;
+  //   theadRow.append(theadCell);
+  // }
 
-  const tbody = document.createElement('tbody');
-  tbody.setAttribute('class', 'board__tbody');
+  // const tbody = document.createElement('tbody');
+  // tbody.setAttribute('class', 'board__tbody');
   
-  for (let y = 0; y < HEIGHT; y++) {
-    const tbodyRow = document.createElement('tr');
-    for (let x = 0; x < WIDTH; x++) {
-      const tbodyCell = document.createElement('td');
-      tbodyCell.setAttribute('id', `${y}-${x}`)
-      tbodyCell.innerHTML = `?`;
-      tbodyRow.append(tbodyCell);
-    }
-    tbody.append(tbodyRow);
-  }
-  board.append(thead, tbody);
+  // for (let y = 0; y < HEIGHT; y++) {
+  //   const tbodyRow = document.createElement('tr');
+  //   for (let x = 0; x < WIDTH; x++) {
+  //     const tbodyCell = document.createElement('td');
+  //     tbodyCell.setAttribute('id', `${y}-${x}`)
+  //     tbodyCell.innerHTML = `?`;
+  //     tbodyRow.append(tbodyCell);
+  //   }
+  //   tbody.append(tbodyRow);
+  // }
+  // board.append(thead, tbody);
 }
 
 /** Handle clicking on a clue: show the question or answer.
@@ -123,6 +130,49 @@ function hideLoadingView() {
  * */
 
 async function setupAndStart() {
+  const categoryIds = await getCategoryIds();
+
+  await categoryIds.forEach(async id => {
+    const categoryObj = await getCategory(id);
+    categories.push(categoryObj);
+  })
+  const board = document.querySelector('.board');
+
+  const thead = document.createElement('thead');
+  const theadRow = document.createElement('tr');
+  thead.setAttribute('class', 'board__thead');
+  theadRow.setAttribute('class', 'board__thead__row');
+  thead.append(theadRow);
+  
+  console.log(categories)
+  categories.forEach((category, idx) => {
+    const theadCell = document.createElement('td');
+    theadCell.setAttribute('id', idx);
+    theadCell.innerHTML = category.title;
+    theadRow.append(theadCell);
+  })
+  // for (let x = 0; x < WIDTH; x++) {
+  //   console.log(categories)
+  //   const theadCell = document.createElement('td');
+  //   theadCell.setAttribute('id', x);
+  //   theadCell.innerHTML = x;
+  //   theadRow.append(theadCell);
+  // }
+
+  const tbody = document.createElement('tbody');
+  tbody.setAttribute('class', 'board__tbody');
+  
+  for (let y = 0; y < HEIGHT; y++) {
+    const tbodyRow = document.createElement('tr');
+    for (let x = 0; x < WIDTH; x++) {
+      const tbodyCell = document.createElement('td');
+      tbodyCell.setAttribute('id', `${y}-${x}`)
+      tbodyCell.innerHTML = `?`;
+      tbodyRow.append(tbodyCell);
+    }
+    tbody.append(tbodyRow);
+  }
+  board.append(thead, tbody);
 }
 
 /** On click of start / restart button, set up game. */
