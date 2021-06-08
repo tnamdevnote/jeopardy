@@ -1,5 +1,6 @@
 let WIDTH = 6;
 let HEIGHT = 5;
+const button = document.querySelector('.button');
 
 // categories is the main data structure for the app; it looks like this:
 
@@ -30,7 +31,7 @@ let categories = [];
  */
 
 const getCategoryIds = async () => {
-  const results = await axios.get('https://jservice.io/api/random', { params: { count: 6 } });
+  const results = await axios.get('https://jservice.io/api/random', { params: { count: WIDTH } });
   const categoryIds = results.data.map(x => x.category_id);
   return categoryIds;
 }
@@ -47,9 +48,8 @@ const getCategoryIds = async () => {
  *   ]
  */
 
-const getCategory = async (categoryIds) => {
-  // console.log(categoryIds)
-  const results = await axios.get('https://jservice.io/api/category', { params: { id: categoryIds } });
+const getCategory = async (categoryId) => {
+  const results = await axios.get('https://jservice.io/api/category', { params: { id: categoryId } });
   const categoryObj = {
     title: results.data.title,
     clues: results.data.clues.map(clue => ({ question: clue.question, answer: clue.answer, showing: null }))
@@ -65,37 +65,13 @@ const getCategory = async (categoryIds) => {
  *   (initally, just show a "?" where the question/answer would go.)
  */
 
-const fillTable = async () => {
-  // const board = document.querySelector('.board');
-
-  // const thead = document.createElement('thead');
-  // const theadRow = document.createElement('tr');
-  // thead.setAttribute('class', 'board__thead');
-  // theadRow.setAttribute('class', 'board__thead__row');
-  // thead.append(theadRow);
-  
-  
-  // for (let x = 0; x < WIDTH; x++) {
-  //   const theadCell = document.createElement('td');
-  //   theadCell.setAttribute('id', x);
-  //   theadCell.innerHTML = x;
-  //   theadRow.append(theadCell);
-  // }
-
-  // const tbody = document.createElement('tbody');
-  // tbody.setAttribute('class', 'board__tbody');
-  
-  // for (let y = 0; y < HEIGHT; y++) {
-  //   const tbodyRow = document.createElement('tr');
-  //   for (let x = 0; x < WIDTH; x++) {
-  //     const tbodyCell = document.createElement('td');
-  //     tbodyCell.setAttribute('id', `${y}-${x}`)
-  //     tbodyCell.innerHTML = `?`;
-  //     tbodyRow.append(tbodyCell);
-  //   }
-  //   tbody.append(tbodyRow);
-  // }
-  // board.append(thead, tbody);
+const fillTable = async (row, categoryId, categoryObj) => {
+  categoryObj = categoryObj || 0;
+  const data = document.createElement('td');
+  data.setAttribute('id', categoryId);
+  data.innerHTML =  row.getAttribute('class') === 'board__thead__row' ? categoryObj.title.toUpperCase() : '?';
+  console.log(data)
+  row.append(data);
 }
 
 /** Handle clicking on a clue: show the question or answer.
@@ -107,6 +83,7 @@ const fillTable = async () => {
  * */
 
 function handleClick(evt) {
+  
 }
 
 /** Wipe the current Jeopardy board, show the loading spinner,
@@ -129,56 +106,62 @@ function hideLoadingView() {
  * - create HTML table
  * */
 
-async function setupAndStart() {
-  const categoryIds = await getCategoryIds();
-
-  await categoryIds.forEach(async id => {
-    const categoryObj = await getCategory(id);
-    categories.push(categoryObj);
-  })
+const setupAndStart = async () => {
+  // Set up a HTML board
   const board = document.querySelector('.board');
 
   const thead = document.createElement('thead');
-  const theadRow = document.createElement('tr');
   thead.setAttribute('class', 'board__thead');
-  theadRow.setAttribute('class', 'board__thead__row');
-  thead.append(theadRow);
-  
-  console.log(categories)
-  categories.forEach((category, idx) => {
-    const theadCell = document.createElement('td');
-    theadCell.setAttribute('id', idx);
-    theadCell.innerHTML = category.title;
-    theadRow.append(theadCell);
-  })
-  // for (let x = 0; x < WIDTH; x++) {
-  //   console.log(categories)
-  //   const theadCell = document.createElement('td');
-  //   theadCell.setAttribute('id', x);
-  //   theadCell.innerHTML = x;
-  //   theadRow.append(theadCell);
-  // }
 
   const tbody = document.createElement('tbody');
   tbody.setAttribute('class', 'board__tbody');
-  
-  for (let y = 0; y < HEIGHT; y++) {
-    const tbodyRow = document.createElement('tr');
-    for (let x = 0; x < WIDTH; x++) {
-      const tbodyCell = document.createElement('td');
-      tbodyCell.setAttribute('id', `${y}-${x}`)
-      tbodyCell.innerHTML = `?`;
-      tbodyRow.append(tbodyCell);
-    }
-    tbody.append(tbodyRow);
-  }
+
   board.append(thead, tbody);
+
+  // get random category Ids
+  const categoryIds = await getCategoryIds();
+  
+  // For each row (including table header), get data for each category and fill out the table.
+  for (let i = 0; i < HEIGHT+1; i++) {
+    const row = document.createElement('tr');
+
+    categoryIds.forEach(async categoryId => {
+      if (i === 0) {
+        row.setAttribute('class', 'board__thead__row');
+        thead.append(row);
+        const categoryObj = await getCategory(categoryId);
+        fillTable(row, categoryId, categoryObj);
+        categories.push(categoryObj);
+      } else {
+        row.setAttribute('class', 'board__tbody__row')
+        tbody.append(row);
+        fillTable(row, categoryId);
+      }
+    })
+  }
+  
+
+
+  
+  // for (let y = 0; y < HEIGHT; y++) {
+  //   const tbodyRow = document.createElement('tr');
+  //   for (let x = 0; x < WIDTH; x++) {
+  //     const tbodyCell = document.createElement('td');
+  //     tbodyCell.setAttribute('id', `${y}-${x}`)
+  //     tbodyCell.innerHTML = `?`;
+  //     tbodyRow.append(tbodyCell);
+  //   }
+  //   tbody.append(tbodyRow);
+  // }
+  
 }
 
 /** On click of start / restart button, set up game. */
 
 // TODO
-
+button.addEventListener('click', evt => {
+  setupAndStart();
+})
 
 /** On page load, add event handler for clicking clues */
 

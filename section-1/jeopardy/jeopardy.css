@@ -3,6 +3,7 @@
 	--secondary-color: #e5ffff;
 	--answer-color: #cddc39;
 	--button-color: #ef9a9a;
+	--font-color: #ffffff;
 }
 body {
 	margin: 0;
@@ -23,9 +24,11 @@ body {
 
 .button {
 	background-color: var(--button-color);
+	color: var(--font-color);
 	width: 120px;
 	height: 50px;
 	border: none;
+	cursor: pointer;
 }
 
 .board {
@@ -35,8 +38,17 @@ body {
 	margin-bottom: 20px;
 }
 
+.board__thead__row {
+	height: 50px;
+}
+
+.board__tbody {
+	cursor: pointer;
+}
+
 td {
 	background-color: var(--primary-color);
-	color: white;
+	color: var(--font-color);
 	text-align: center;
+	width: 100px;
 }
