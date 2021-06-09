@@ -120,16 +120,16 @@ const setupAndStart = async () => {
 
   // get random category Ids
   const categoryIds = await getCategoryIds();
-  
+  const categories = categoryIds.map(async categoryId => await getCategory(categoryId));
   // For each row (including table header), get data for each category and fill out the table.
   for (let i = 0; i < HEIGHT+1; i++) {
     const row = document.createElement('tr');
-
-    categoryIds.forEach(async categoryId => {
+    
+    for (categoryId of categoryIds) {
       if (i === 0) {
+        const categoryObj = await getCategory(categoryId);
         row.setAttribute('class', 'board__thead__row');
         thead.append(row);
-        const categoryObj = await getCategory(categoryId);
         fillTable(row, categoryId, categoryObj);
         categories.push(categoryObj);
       } else {
@@ -137,23 +137,8 @@ const setupAndStart = async () => {
         tbody.append(row);
         fillTable(row, categoryId);
       }
-    })
-  }
-  
-
-
-  
-  // for (let y = 0; y < HEIGHT; y++) {
-  //   const tbodyRow = document.createElement('tr');
-  //   for (let x = 0; x < WIDTH; x++) {
-  //     const tbodyCell = document.createElement('td');
-  //     tbodyCell.setAttribute('id', `${y}-${x}`)
-  //     tbodyCell.innerHTML = `?`;
-  //     tbodyRow.append(tbodyCell);
-  //   }
-  //   tbody.append(tbodyRow);
-  // }
-  
+    }
+  }  
 }
 
 /** On click of start / restart button, set up game. */
@@ -161,6 +146,7 @@ const setupAndStart = async () => {
 // TODO
 button.addEventListener('click', evt => {
   setupAndStart();
+
 })
 
 /** On page load, add event handler for clicking clues */
