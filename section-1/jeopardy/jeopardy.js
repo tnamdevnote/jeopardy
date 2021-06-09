@@ -1,6 +1,7 @@
 let WIDTH = 6;
 let HEIGHT = 5;
 const button = document.querySelector('.button');
+const board = document.querySelector('.board');
 
 // categories is the main data structure for the app; it looks like this:
 
@@ -12,7 +13,7 @@ const button = document.querySelector('.button');
 //        ...
 //      ],
 //    },
-//    { title: "Literature",
+//    { title: "Literature", 
 //      clues: [
 //        {question: "Hamlet Author", answer: "Shakespeare", showing: null},
 //        {question: "Bell Jar Author", answer: "Plath", showing: null},
@@ -22,7 +23,7 @@ const button = document.querySelector('.button');
 //    ...
 //  ]
 
-let categories = [];
+let categories = {};
 
 
 /** Get NUM_CATEGORIES random category from API.
@@ -69,8 +70,8 @@ const fillTable = async (row, categoryId, categoryObj) => {
   categoryObj = categoryObj || 0;
   const data = document.createElement('td');
   data.setAttribute('id', categoryId);
-  data.innerHTML =  row.getAttribute('class') === 'board__thead__row' ? categoryObj.title.toUpperCase() : '?';
-  console.log(data)
+  data.setAttribute('class', row.getAttribute('class'));
+  data.innerHTML =  row.getAttribute('class') === 'board__thead__row__0' ? categoryObj.title.toUpperCase() : '?';
   row.append(data);
 }
 
@@ -82,8 +83,18 @@ const fillTable = async (row, categoryId, categoryObj) => {
  * - if currently "answer", ignore click
  * */
 
-function handleClick(evt) {
-  
+const handleClick = (eventTarget) => {
+  const clues = categories[eventTarget.id].clues.slice(0,5);
+  const rowNumber = parseInt(eventTarget.classList.value.split('__')[3]);
+  if(!clues[rowNumber]['showing']) {
+    eventTarget.innerHTML = clues[rowNumber]['question']
+    clues[rowNumber]['showing'] = 'question'
+  } 
+  else if (clues[rowNumber]['showing'] === 'question') {
+    eventTarget.innerHTML = clues[rowNumber]['answer']
+    clues[rowNumber]['showing'] = 'answer'
+  }
+  console.log(clues, clues[rowNumber]['showing'], parseInt(eventTarget.classList.value.split('__')[3]) )
 }
 
 /** Wipe the current Jeopardy board, show the loading spinner,
@@ -108,8 +119,6 @@ function hideLoadingView() {
 
 const setupAndStart = async () => {
   // Set up a HTML board
-  const board = document.querySelector('.board');
-
   const thead = document.createElement('thead');
   thead.setAttribute('class', 'board__thead');
 
@@ -120,7 +129,7 @@ const setupAndStart = async () => {
 
   // get random category Ids
   const categoryIds = await getCategoryIds();
-  const categories = categoryIds.map(async categoryId => await getCategory(categoryId));
+  
   // For each row (including table header), get data for each category and fill out the table.
   for (let i = 0; i < HEIGHT+1; i++) {
     const row = document.createElement('tr');
@@ -128,12 +137,12 @@ const setupAndStart = async () => {
     for (categoryId of categoryIds) {
       if (i === 0) {
         const categoryObj = await getCategory(categoryId);
-        row.setAttribute('class', 'board__thead__row');
+        row.setAttribute('class', `board__thead__row__${i}`);
         thead.append(row);
         fillTable(row, categoryId, categoryObj);
-        categories.push(categoryObj);
+        categories[categoryId] = categoryObj;
       } else {
-        row.setAttribute('class', 'board__tbody__row')
+        row.setAttribute('class', `board__tbody__row__${i-1}`)
         tbody.append(row);
         fillTable(row, categoryId);
       }
@@ -146,9 +155,11 @@ const setupAndStart = async () => {
 // TODO
 button.addEventListener('click', evt => {
   setupAndStart();
-
 })
 
 /** On page load, add event handler for clicking clues */
 
 // TODO
+board.addEventListener('click', evt => {
+  handleClick(evt.target);
+})
