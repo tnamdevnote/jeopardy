@@ -1,6 +1,6 @@
 let WIDTH = 6;
 let HEIGHT = 5;
-const button = document.querySelector('.button');
+const button = document.querySelector('.button__start');
 const board = document.querySelector('.board');
 
 // categories is the main data structure for the app; it looks like this:
@@ -66,12 +66,12 @@ const getCategory = async (categoryId) => {
  *   (initally, just show a "?" where the question/answer would go.)
  */
 
-const fillTable = async (row, categoryId, categoryObj) => {
+const fillTable = async (rowIndex, row, categoryId, categoryObj) => {
   categoryObj = categoryObj || 0;
   const data = document.createElement('td');
-  data.setAttribute('id', categoryId);
+  data.setAttribute('id', `${categoryId}r${rowIndex}`);
   data.setAttribute('class', row.getAttribute('class'));
-  data.innerHTML =  row.getAttribute('class') === 'board__thead__row__0' ? categoryObj.title.toUpperCase() : '?';
+  data.innerHTML =  row.getAttribute('class') === 'board__thead__0' ? categoryObj.title.toUpperCase() : '?';
   row.append(data);
 }
 
@@ -84,30 +84,37 @@ const fillTable = async (row, categoryId, categoryObj) => {
  * */
 
 const handleClick = (eventTarget) => {
-  const clues = categories[eventTarget.id].clues.slice(0,5);
-  const rowNumber = parseInt(eventTarget.classList.value.split('__')[3]);
-  if(!clues[rowNumber]['showing']) {
-    eventTarget.innerHTML = clues[rowNumber]['question']
-    clues[rowNumber]['showing'] = 'question'
+  const eventTargetId = eventTarget.id.split('r')[0];
+  const clues = categories[eventTargetId].clues.slice(0, HEIGHT);
+  const rowNumber = parseInt(eventTarget.classList.value.split('__')[2]);
+  const targetClue = clues[rowNumber];
+  
+  if(!targetClue['showing']) {
+    eventTarget.innerHTML = targetClue['question'];
+    targetClue['showing'] = 'question';
   } 
-  else if (clues[rowNumber]['showing'] === 'question') {
-    eventTarget.innerHTML = clues[rowNumber]['answer']
-    clues[rowNumber]['showing'] = 'answer'
+  else if (targetClue['showing'] === 'question') {
+    eventTarget.innerHTML = targetClue['answer'];
+    targetClue['showing'] = 'answer';
+    eventTarget.classList.add('answer');
   }
-  console.log(clues, clues[rowNumber]['showing'], parseInt(eventTarget.classList.value.split('__')[3]) )
+  console.log(eventTarget)
 }
 
 /** Wipe the current Jeopardy board, show the loading spinner,
  * and update the button used to fetch data.
  */
 
-function showLoadingView() {
-
+const showLoadingView = () => {
+  button.setAttribute('class', 'button__loading')
+  button.innerHTML = 'Loading...';
 }
 
 /** Remove the loading spinner and update the button used to fetch data. */
 
-function hideLoadingView() {
+const hideLoadingView = () => {
+  button.setAttribute('class', 'button__restart')
+  button.innerHTML = 'Restart'
 }
 
 /** Start game:
@@ -125,36 +132,50 @@ const setupAndStart = async () => {
   const tbody = document.createElement('tbody');
   tbody.setAttribute('class', 'board__tbody');
 
-  board.append(thead, tbody);
+  
 
   // get random category Ids
   const categoryIds = await getCategoryIds();
   
   // For each row (including table header), get data for each category and fill out the table.
-  for (let i = 0; i < HEIGHT+1; i++) {
+  for (let rowIndex = 0; rowIndex < HEIGHT+1; rowIndex++) {
     const row = document.createElement('tr');
     
     for (categoryId of categoryIds) {
-      if (i === 0) {
+      if (rowIndex === 0) {
         const categoryObj = await getCategory(categoryId);
-        row.setAttribute('class', `board__thead__row__${i}`);
+        row.setAttribute('class', `board__thead__${rowIndex}`);
         thead.append(row);
-        fillTable(row, categoryId, categoryObj);
+        fillTable(rowIndex, row, categoryId, categoryObj);
         categories[categoryId] = categoryObj;
       } else {
-        row.setAttribute('class', `board__tbody__row__${i-1}`)
+        row.setAttribute('class', `board__tbody__${rowIndex-1}`)
         tbody.append(row);
-        fillTable(row, categoryId);
+        fillTable(rowIndex-1, row, categoryId);
       }
     }
-  }  
+  }
+
+  board.append(thead, tbody);
 }
 
 /** On click of start / restart button, set up game. */
 
 // TODO
-button.addEventListener('click', evt => {
-  setupAndStart();
+button.addEventListener('click', async evt => {
+  if(evt.target.getAttribute('class') === 'button__restart') {
+    evt.target.className = 'button__start';
+    board.innerHTML = '';
+  }
+
+  if(evt.target.getAttribute('class') === 'button__start') {
+    showLoadingView();
+    await setupAndStart();
+    hideLoadingView();
+  }
+  
+
+  
 })
 
 /** On page load, add event handler for clicking clues */
