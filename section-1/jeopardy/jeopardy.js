@@ -98,7 +98,6 @@ const handleClick = (eventTarget) => {
     targetClue['showing'] = 'answer';
     eventTarget.classList.add('answer');
   }
-  console.log(eventTarget)
 }
 
 /** Wipe the current Jeopardy board, show the loading spinner,
@@ -166,6 +165,7 @@ button.addEventListener('click', async evt => {
   if(evt.target.getAttribute('class') === 'button__restart') {
     evt.target.className = 'button__start';
     board.innerHTML = '';
+    categories = {};
   }
 
   if(evt.target.getAttribute('class') === 'button__start') {
