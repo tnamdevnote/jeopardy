@@ -71,6 +71,7 @@ const fillTable = async (rowIndex, row, categoryId, categoryObj) => {
   const data = document.createElement('td');
   data.setAttribute('id', `${categoryId}r${rowIndex}`);
   data.setAttribute('class', row.getAttribute('class'));
+  // if a row is a table header, populate it with title for each category
   data.innerHTML =  row.getAttribute('class') === 'board__thead__0' ? categoryObj.title.toUpperCase() : '?';
   row.append(data);
 }
@@ -173,9 +174,6 @@ button.addEventListener('click', async evt => {
     await setupAndStart();
     hideLoadingView();
   }
-  
-
-  
 })
 
 /** On page load, add event handler for clicking clues */
